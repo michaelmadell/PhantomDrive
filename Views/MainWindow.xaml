@@ -1,0 +1,405 @@
+<Window x:Class="PhantomDrive.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:PhantomDrive.ViewModels"
+        xmlns:models="clr-namespace:PhantomDrive.Models" xmlns:reflection="clr-namespace:System.Reflection;assembly=System.Runtime"
+        Title="PhantomDrive"
+        Width="920" Height="680"
+        MinWidth="760" MinHeight="520"
+        Background="{StaticResource BgDarkBrush}"
+        WindowStartupLocation="CenterScreen"
+        AllowDrop="True"
+        Drop="Window_Drop"
+        DragOver="Window_DragOver">
+    <Window.Resources>
+        <Color x:Key="SolidColorBrushColor1">#2DFF4A4A</Color>
+    </Window.Resources>
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Title bar -->
+            <RowDefinition Height="*"/>
+            <!-- Drive slots -->
+            <RowDefinition Height="Auto"/>
+            <!-- Status bar -->
+        </Grid.RowDefinitions>
+
+        <!-- ===========================================================
+             HEADER / TOOLBAR
+             =========================================================== -->
+        <Border Grid.Row="0"
+                Background="{StaticResource BgCardBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="24,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- App title + tagline -->
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                        <!-- Ghost icon -->
+                        <!-- Ghost icon -->
+                        <Image
+                            Source="/Views/ghost.png"
+                            Width="29"
+                            Height="37"
+                            />
+                        <TextBlock Text="PhantomDrive"
+                                   FontFamily="{StaticResource UIFont}"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Padding="12,0,0,0"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center"/>
+                        <Border Background="#222B2B2B"
+                                CornerRadius="4"
+                                Padding="6,4"
+                                Margin="12,0,0,0"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="{Binding AppVersion}"
+                                       FontFamily="{StaticResource MonoFont}"
+                                       FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}"/>
+                        </Border>
+                    </StackPanel>
+                    <TextBlock Text="Virtual disc drive manager with realistic speed emulation"
+                               Style="{StaticResource Subheading}"
+                               Margin="36,0,0,0"/>
+                </StackPanel>
+
+                <!-- Toolbar buttons -->
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Command="{Binding AddSlotCommand}"
+                            Margin="0,0,8,0">
+                        <Button.Background>
+                            <LinearGradientBrush>
+                                <GradientStop Color="#FF1797FF" Offset="0.24"/>
+                                <GradientStop Color="#FF0020FF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Button.Background>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,6,0"/>
+                            <TextBlock Text="Add Drive" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource DangerButton}"
+                            Command="{Binding EjectAllCommand}" Background="#3BFF0000">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE7AD;"
+                                       FontFamily="{StaticResource IconFont}"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,6,0"/>
+                            <TextBlock Text="Eject All" VerticalAlignment="Center" FontSize="14"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===========================================================
+             DRIVE SLOTS LIST
+             =========================================================== -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="24,16">
+            <ItemsControl ItemsSource="{Binding DriveSlots}"
+                          Margin="0,0,0,16">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <!-- Single drive card -->
+                        <Border Background="{StaticResource BgCardBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Margin="0,0,0,12"
+                                Padding="0"
+                                AllowDrop="True"
+                                Drop="DriveCard_Drop"
+                                DragOver="DriveCard_DragOver">
+
+                            <!-- Status accent left border -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Coloured status strip -->
+                                <Border Grid.Column="0"
+                                        CornerRadius="10,0,0,10"
+                                        Background="{Binding Status, Converter={StaticResource StatusToColor}}"
+                                        Width="4"/>
+
+                                <!-- Card content -->
+                                <Grid Grid.Column="1" Margin="20,16,20,16">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <!-- Top row: icon + info + buttons -->
+                                        <RowDefinition Height="Auto"/>
+                                        <!-- Controls row -->
+                                        <RowDefinition Height="Auto"/>
+                                        <!-- Status message -->
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Row 0: Drive identity + actions -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <!-- Drive icon -->
+                                            <ColumnDefinition Width="*"/>
+                                            <!-- Drive info -->
+                                            <ColumnDefinition Width="Auto"/>
+                                            <!-- Action buttons -->
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Drive icon -->
+                                        <Border Grid.Column="0"
+                                                Width="52" Height="52"
+                                                CornerRadius="10"
+                                                Background="{Binding Status, Converter={StaticResource StatusToBg}}"
+                                                Margin="0,0,16,0"
+                                                VerticalAlignment="Center">
+                                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <TextBlock Text="💿"
+                                                           FontSize="24"
+                                                           HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Drive info -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                                <TextBlock FontFamily="{StaticResource UIFont}"
+                                                           FontSize="16"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding StringFormat="Drive {0} - {1}">
+                                                            <Binding Path="SlotIndex"/>
+                                                            <Binding Path="MediaTypeDisplay"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                                <Border Background="#22FFFFFF"
+                                                        CornerRadius="4"
+                                                        Padding="6,1"
+                                                        Margin="10,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        Visibility="{Binding IsMounted, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{Binding DriveLetterDisplay}"
+                                                               FontFamily="{StaticResource MonoFont}"
+                                                               FontSize="12"
+                                                               FontWeight="Bold"
+                                                               Foreground="{StaticResource AccentGreenBrush}"/>
+                                                </Border>
+                                            </StackPanel>
+
+                                            <!-- Image file name -->
+                                            <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
+                                                       FontFamily="{StaticResource UIFont}"
+                                                       FontSize="12.5"
+                                                       Visibility="{Binding HasImage, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0}  ·  {1}">
+                                                        <Binding Path="ImageFileName"/>
+                                                        <Binding Path="ImageSizeFormatted"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+
+                                            <TextBlock Text="No image loaded"
+                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                       FontFamily="{StaticResource UIFont}"
+                                                       FontSize="12.5"
+                                                       FontStyle="Italic"
+                                                       Visibility="{Binding HasImage, Converter={StaticResource InvBoolToVis}}"/>
+                                        </StackPanel>
+
+                                        <!-- Action buttons -->
+                                        <StackPanel Grid.Column="2"
+                                                    Orientation="Horizontal"
+                                                    VerticalAlignment="Center">
+
+                                            <Button Style="{StaticResource ActionButtonBrowse}"
+                                                    Command="{Binding BrowseCommand}"
+                                                    ToolTip="Browse for an image file"
+                                                    Margin="0,0,6,0"
+                                                    Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xED25;"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               FontSize="13"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Browse" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <Button Style="{StaticResource PrimaryButton}"
+                                                    Command="{Binding MountCommand}"
+                                                    Visibility="{Binding CanMount, Converter={StaticResource BoolToVis}}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE768;"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               FontSize="13"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Mount" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <Button Style="{StaticResource DangerButton}"
+                                                    Command="{Binding EjectCommand}"
+                                                    Visibility="{Binding CanEject, Converter={StaticResource BoolToVis}}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE7AD;"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               FontSize="13"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Eject" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Row 1: Media type + Speed selectors -->
+                                    <Grid Grid.Row="1"
+                                          Margin="0,0,0,8"
+                                          Visibility="{Binding HasImage, Converter={StaticResource BoolToVis}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="16"/>
+                                            <ColumnDefinition Width="1.4*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Media type selector -->
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="MEDIA TYPE"
+                                                       Style="{StaticResource Label}"
+                                                       Margin="0,0,0,5"/>
+                                            <ComboBox Style="{StaticResource DarkComboBox}"
+                                                      ItemsSource="{Binding MediaTypes}"
+                                                      SelectedItem="{Binding MediaType}"
+                                                      IsEnabled="{Binding IsEmpty}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Converter={StaticResource MediaDisplay}}"/>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </StackPanel>
+
+                                        <!-- Speed profile selector -->
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="EMULATED SPEED"
+                                                       Style="{StaticResource Label}"
+                                                       Margin="0,0,0,5"/>
+                                            <ComboBox Style="{StaticResource DarkComboBox}"
+                                                      ItemsSource="{Binding AvailableSpeeds}"
+                                                      SelectedItem="{Binding SelectedSpeed}"
+                                                      IsEnabled="{Binding IsEmpty}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                            <TextBlock Text="  -  "
+                                                                       Foreground="{StaticResource TextMutedBrush}"
+                                                                       Visibility="{Binding IsMaxSpeed, Converter={StaticResource InvBoolToVis}}"/>
+                                                            <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
+                                                                       Visibility="{Binding IsMaxSpeed, Converter={StaticResource InvBoolToVis}}">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="Read {0} / Write {1}">
+                                                                        <Binding Path="ReadSpeedFormatted"/>
+                                                                        <Binding Path="WriteSpeedFormatted"/>
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Row 2: Status message -->
+                                    <Border Grid.Row="2"
+                                            Background="#08FFFFFF"
+                                            CornerRadius="6"
+                                            Padding="10,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="7" Height="7"
+                                                     Fill="{Binding Status, Converter={StaticResource StatusToColor}}"
+                                                     VerticalAlignment="Center"
+                                                     Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding StatusMessage}"
+                                                       FontFamily="{StaticResource UIFont}"
+                                                       FontSize="12"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- ===========================================================
+             FOOTER / STATUS BAR
+             =========================================================== -->
+        <Border Grid.Row="2"
+                Background="{StaticResource BgCardBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="24,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           FontFamily="{StaticResource UIFont}"
+                           FontSize="11.5"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center">
+                    <TextBlock.Text>
+                        <Binding Path="DriveSlots.Count" StringFormat="{}{0} virtual drive(s) configured"/>
+                    </TextBlock.Text>
+                </TextBlock>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Supports: ISO · IMG · BIN/CUE · NRG · MDS · CCD · UDF · VFD · FLP"
+                               FontFamily="{StaticResource MonoFont}"
+                               FontSize="10.5"
+                               Foreground="{StaticResource TextMutedBrush}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

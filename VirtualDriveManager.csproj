@@ -1,0 +1,75 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Title>PhantomDrive - Virtual Disk Manager</Title>
+    <AssemblyName>PhantomDrive</AssemblyName>
+    <RootNamespace>PhantomDrive</RootNamespace>
+    <Version>2026.3.1</Version>
+    <Description>Mount and manage virtual disk drives with realistic speed emulation</Description>
+    <StartupObject>PhantomDrive.App</StartupObject>
+    <AssemblyVersion>20.26.3.1</AssemblyVersion>
+    <FileVersion>20.26.3.1</FileVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>enable</Nullable>
+    <Company>Monkeys 3DPrints</Company>
+    <Authors>Michael Madell</Authors>
+    <PackageProjectUrl>https://github.com/michaelmadell/PhantomDrive</PackageProjectUrl>
+    <PackageIcon>ghost.png</PackageIcon>
+    <RepositoryUrl>https://github.com/michaelmadell/PhantomDrive</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="DiscUtils.Iso9660" Version="0.16.13" />
+    <PackageReference Include="DiscUtils.Udf" Version="0.16.13" />
+    <PackageReference Include="DiscUtils.Vhd" Version="0.16.13" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Views\ghost.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Remove="Assets\app.ico" />
+    <Resource Remove="Assets\ghost.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\ghost.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Views\ghost.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\ghost.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
