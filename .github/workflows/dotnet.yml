@@ -2,9 +2,9 @@ name: .NET
 
 on:
   push:
-    branches: [ "Workflow-Test" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "Workflow-Test" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -25,14 +25,7 @@ jobs:
       run: dotnet build --no-restore -c Release -p:EnableWindowsTargeting=true
 
     - name: Test
-      run: dotnet test --no-build -c Release --verbosity normal -p:EnableWindowsTargeting=true --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
-
-    - name: Upload test results (TRX)
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: TestResults/**/*.trx
+      run: dotnet test --no-build -c Release --verbosity normal -p:EnableWindowsTargeting=true
 
     - name: Publish (WPF self-contained single-file)
       run: >
@@ -48,5 +41,5 @@ jobs:
     - name: Upload published app
       uses: actions/upload-artifact@v4
       with:
-        name: wpf-win-x64-selfcontained-singlefile
+        name: PhantomDrive_x64
         path: publish/**
